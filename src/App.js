@@ -1,14 +1,14 @@
 import logo from './logo.svg';
 import './App.css';
 import { SEND_MAIN_PING } from './constants';
-
+// import { ipcRenderer } from 'electron';
 function App() {
-  const { ipcRenderer }  = window.require("electron");
+  // const { ipcRenderer }  = window.require("electron");
   const sendMain = () => {
-    ipcRenderer.send('openPopup', 'send');
+    // ipcRenderer.send('openPopup', 'send');
   }
   const sendPosition = () => {
-    ipcRenderer.send('popupPosition', 'send');
+    // ipcRenderer.send('popupPosition', 'send');
   }
   return (
     <div className="App">
