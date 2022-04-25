@@ -128,7 +128,8 @@ ipcMain.on('popupPosition',async (event, arg) => {
     }
     screenArray.forEach((screen, idx) => {
       console.log('rs???', screen.thumbnail.toPNG())
-      fs.writeFile(`thub_${idx}.png`, screen.thumbnail.toPNG(), (err) => {
+      const buffer = screen.thumbnail.toPNG();
+      fs.writeFile(`thub_${idx}.png`, buffer, (err) => {
         if (err) throw err
         console.log('Image Saved')
       })
