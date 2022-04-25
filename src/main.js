@@ -3,6 +3,7 @@ const path = require('path')
 const { SEND_MAIN_PING } =require('./constants')
 const {takeScreenshot} = require("electron-screencapture");
 const fs = require('fs')
+const ElectronShortcutCapture = require('electron-shortcut-capture-patch');
 
 let win;
 function createWindow () { 
@@ -116,17 +117,26 @@ function appScreenshot(callback,imageFormat) {
     });
 }
 ipcMain.on('popupPosition',async (event, arg) => {
-  takeScreenshot({x: 0, y: 0, width: 800, height: 600}).then(result => {
-    console.log(result);
-  });
+  const electronShortcutCapture = new ElectronShortcutCapture({
+    multiScreen: true,
+  })
+  console.log(electronShortcutCapture.getScreenSources(400, 300).then(rs => {
+    console.log('rs???', rs[0].thumbnail.toPNG())
+    fs.writeFile(`thub.png`, rs[0].thumbnail.toPNG(), (err) => {
+      if (err) throw err
+      console.log('Image Saved')
+      })
+  }))
 })
 app.whenReady().then(() => { 
   createWindow();
   setInterval(()=>{
     console.log(`Capturing Count: ${0}`)
     //start capturing the window
+
     win.webContents.capturePage().then(image => 
     {
+      console.log(image.toPNG())
       //writing  image to the disk
           fs.writeFile(`test${0}.png`, image.toPNG(), (err) => {
           if (err) throw err
