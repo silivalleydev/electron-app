@@ -119,14 +119,22 @@ function appScreenshot(callback,imageFormat) {
 ipcMain.on('popupPosition',async (event, arg) => {
   const electronShortcutCapture = new ElectronShortcutCapture({
     multiScreen: true,
-  })
-  console.log(electronShortcutCapture.getScreenSources(400, 300).then(rs => {
-    console.log('rs???', rs[0].thumbnail.toPNG())
-    fs.writeFile(`thub.png`, rs[0].thumbnail.toPNG(), (err) => {
-      if (err) throw err
-      console.log('Image Saved')
+  });
+  console.log(
+  electronShortcutCapture.getScreenSources(1280, 720).then(screens => {
+    let screenArray = screens;
+    if (!screens) {
+      screenArray = [];
+    }
+    screenArray.forEach((screen, idx) => {
+      console.log('rs???', screen.thumbnail.toPNG())
+      fs.writeFile(`thub_${idx}.png`, screen.thumbnail.toPNG(), (err) => {
+        if (err) throw err
+        console.log('Image Saved')
       })
-  }))
+    })
+  })
+  )
 })
 app.whenReady().then(() => { 
   createWindow();
