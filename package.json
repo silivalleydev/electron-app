@@ -11,13 +11,14 @@
     "electron-screencapture": "^1.1.0",
     "electron-shortcut-capture": "^1.1.13-12",
     "electron-shortcut-capture-patch": "^1.2.7",
+    "mac-screen-capture-permissions": "^2.0.0",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "react-scripts": "4.0.3",
+    "react-scripts": "^4.0.3",
     "web-vitals": "^1.0.1"
   },
   "scripts": {
-    "start": "concurrently \"yarn react-scripts start\" ",
+    "start": "concurrently \"react-scripts start\" ",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

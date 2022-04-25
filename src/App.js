@@ -1,9 +1,19 @@
+import React, { useEffect } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import { SEND_MAIN_PING } from './constants';
 // import { ipcRenderer } from 'electron';
 function App() {
   const { ipcRenderer }  = window.require("electron");
+
+  useEffect(() => {
+    ipcRenderer.send('macScreenPermissionCheck');
+    ipcRenderer.on('macScreenPermissionAlert', () => {
+      alert('화면 기록 권한을 허용해주세요');
+      ipcRenderer.send('openSystemPreferences');
+    })
+  }, [])
+
   const sendMain = () => {
     ipcRenderer.send('openPopup', 'send');
   }

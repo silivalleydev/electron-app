@@ -1,10 +1,14 @@
-const { app, BrowserWindow, ipcMain, desktopCapturer, systemPreferences, globalShortcut } = require('electron') 
+const { app, BrowserWindow, ipcMain, desktopCapturer, systemPreferences, globalShortcut, ipcRenderer } = require('electron') 
 const path = require('path') 
 const { SEND_MAIN_PING } =require('./constants')
 const {takeScreenshot} = require("electron-screencapture");
 const fs = require('fs')
 const ElectronShortcutCapture = require('electron-shortcut-capture-patch');
 const CaptureScreen = require('electron-capture-screen');
+const {
+  hasScreenCapturePermission,
+  openSystemPreferences
+} = require('mac-screen-capture-permissions');
 
 let win;
 function createWindow () { 
@@ -62,8 +66,47 @@ function appScreenshot(callback,imageFormat) {
 }
 
 ipcMain.on('electron-capture-screen', () => {
-  const captureScreen = new CaptureScreen();
-  captureScreen.init();
+  let captureWin = new BrowserWindow({ 
+    width: 800, 
+    height: 600, 
+    webPreferences: { 
+      nodeIntegration: true,
+      contextIsolation : false
+    } 
+  }) 
+  if (captureWin) {
+    return
+   }
+   const { screen } = require('electron')
+   let { width, height } = screen.getPrimaryDisplay().bounds
+   captureWin = new BrowserWindow({
+    // window    fullscreen, mac     undefined,     false
+    fullscreen: true, // win
+    width,
+    height,
+    x: -100,
+    y: -100,
+    transparent: true,
+    frame: false,
+    skipTaskbar: true,
+    autoHideMenuBar: true,
+    movable: false,
+    resizable: false,
+    enableLargerThanScreen: true, // mac
+    hasShadow: false,
+   })
+   captureWin.setAlwaysOnTop(true, 'screen-saver') // mac
+   captureWin.setVisibleOnAllWorkspaces(true) // mac
+   captureWin.setFullScreenable(true) // mac
+  
+   captureWin.loadFile(path.join(__dirname, 'capture.html'))
+  
+   //    
+   // captureWin.openDevTools()
+  
+   captureWin.on('closed', () => {
+    captureWin = null
+   })
 })
 ipcMain.on('desktopCapturer', () => {
   appScreenshot();
@@ -92,9 +135,20 @@ ipcMain.on('electronShortcutCapture',async (event, arg) => {
     })
   })
 })
+ipcMain.on('macScreenPermissionCheck', (event) => {
+  
+  if (process.platform === "darwin" && hasScreenCapturePermission() === false) {
+    event.sender.send('macScreenPermissionAlert');
+  }
+})
+ipcMain.on('openSystemPreferences', (event) => {
+  openSystemPreferences();
+})
 app.whenReady().then(() => { 
   createWindow();
-  systemPreferences.askForMediaAccess("camera");
+  console.log('ACCESS????', systemPreferences.getMediaAccessStatus("screen"));
+  console.log('OS??',hasScreenCapturePermission());
+
   // globalShortcut.register('Esc', () => {
   //     captureScreen.init();
   // });
