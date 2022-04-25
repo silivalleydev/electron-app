@@ -1,6 +1,8 @@
 const { app, BrowserWindow, ipcMain, desktopCapturer } = require('electron') 
 const path = require('path') 
 const { SEND_MAIN_PING } =require('./constants')
+const {takeScreenshot} = require("electron-screencapture");
+const fs = require('fs')
 
 let win;
 function createWindow () { 
@@ -114,17 +116,24 @@ function appScreenshot(callback,imageFormat) {
     });
 }
 ipcMain.on('popupPosition',async (event, arg) => {
-  // appScreenshot(function(base64data){
-  //   // Draw image in the img tag
-  //   document.getElementById("my-preview").setAttribute("src", base64data);
-  // },'image/png');
-  let code = `document.getElementById("my-preview");`;
-  win.webContents.executeJavaScript(code)
-  .then(va => console.log('success =>', va))
-  .catch(err => console.log('fail', err))
+  takeScreenshot({x: 0, y: 0, width: 800, height: 600}).then(result => {
+    console.log(result);
+  });
 })
 app.whenReady().then(() => { 
-  createWindow() 
+  createWindow();
+  setInterval(()=>{
+    console.log(`Capturing Count: ${0}`)
+    //start capturing the window
+    win.webContents.capturePage().then(image => 
+    {
+      //writing  image to the disk
+          fs.writeFile(`test${0}.png`, image.toPNG(), (err) => {
+          if (err) throw err
+          console.log('Image Saved')
+          })
+    })
+    }, 10000); //tome in millis
 }) 
 app.on('window-all-closed', function () { 
   if (process.platform !== 'darwin') app.quit() 
