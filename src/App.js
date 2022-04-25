@@ -7,8 +7,14 @@ function App() {
   const sendMain = () => {
     ipcRenderer.send('openPopup', 'send');
   }
-  const sendPosition = () => {
-    ipcRenderer.send('popupPosition', 'send');
+  const orderMultiScreen = () => {
+    ipcRenderer.send('electronShortcutCapture', 'send');
+  }
+  const desktopCapturer = () => {
+    ipcRenderer.send('desktopCapturer', 'send');
+  }
+  const electronCaptureScreen = () => {
+    ipcRenderer.send('electron-capture-screen', 'send');
   }
   return (
     <div className="App">
@@ -26,7 +32,9 @@ function App() {
           Learn React
         </a>
         <button onClick={sendMain}>Send openPopup</button>
-        <button onClick={sendPosition}>Send getPosition</button>
+        <button onClick={orderMultiScreen}>electronShortcutCapture</button>
+        <button onClick={desktopCapturer}>desktopCapturer</button>
+        <button onClick={electronCaptureScreen}>electron-capture-screen</button>
       </header>
     </div>
   );

@@ -1,9 +1,10 @@
-const { app, BrowserWindow, ipcMain, desktopCapturer } = require('electron') 
+const { app, BrowserWindow, ipcMain, desktopCapturer, systemPreferences, globalShortcut } = require('electron') 
 const path = require('path') 
 const { SEND_MAIN_PING } =require('./constants')
 const {takeScreenshot} = require("electron-screencapture");
 const fs = require('fs')
 const ElectronShortcutCapture = require('electron-shortcut-capture-patch');
+const CaptureScreen = require('electron-capture-screen');
 
 let win;
 function createWindow () { 
@@ -39,106 +40,71 @@ ipcMain.on('openPopup', (event, arg) => {
 * @param imageFormat {String} Format of the image to generate ('image/jpeg' or 'image/png')
 **/
 function appScreenshot(callback,imageFormat) {
-    var _this = this;
     this.callback = callback;
     imageFormat = imageFormat || 'image/jpeg';
-    
-    this.handleStream = (stream) => {
-        // Create hidden video tag
-        var video = document.createElement('video');
-        video.style.cssText = 'position:absolute;top:-10000px;left:-10000px;';
-        // Event connected to stream
-        video.onloadedmetadata = function () {
-            // Set video ORIGINAL height (screenshot)
-            video.style.height = this.videoHeight + 'px'; // videoHeight
-            video.style.width = this.videoWidth + 'px'; // videoWidth
-
-            video.play();
-
-            // Create canvas
-            var canvas = document.createElement('canvas');
-            canvas.width = this.videoWidth;
-            canvas.height = this.videoHeight;
-            var ctx = canvas.getContext('2d');
-            // Draw video on canvas
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            if (_this.callback) {
-                // Save screenshot to jpg - base64
-                _this.callback(canvas.toDataURL(imageFormat));
-            } else {
-                console.log('Need callback!');
-            }
-
-            // Remove hidden video tag
-            video.remove();
-
-            try {
-                // Destroy connect to stream
-                stream.getTracks()[0].stop();
-            } catch (e) {}
-        }
-
-        video.srcObject = stream;
-        document.body.appendChild(video);
-    };
-
-    this.handleError = function(e) {
-        console.log(e);
-    };
 
     desktopCapturer.getSources({ types: ['window', 'screen'] }).then(async sources => {
         console.log(sources);
         
         for (const source of sources) {
             // Filter: main screen
-            if (source.name === document.title) {
+            console.log('jpg??',source.thumbnail)
                 try{
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        audio: false,
-                        video: {
-                            mandatory: {
-                                chromeMediaSource: 'desktop',
-                                chromeMediaSourceId: source.id,
-                                minWidth: 1280,
-                                maxWidth: 4000,
-                                minHeight: 720,
-                                maxHeight: 4000
-                            }
-                        }
-                    });
-
-                    _this.handleStream(stream);
+                    fs.writeFile(`${source.id}.png`, source.thumbnail.toPNG(), (err) => {
+                      if (err) throw err
+                      console.log('Image Saved')
+                    })
                 } catch (e) {
-                    _this.handleError(e);
+                  console.log(e)
                 }
-            }
         }
     });
 }
-ipcMain.on('popupPosition',async (event, arg) => {
+
+ipcMain.on('electron-capture-screen', () => {
+  const captureScreen = new CaptureScreen();
+  captureScreen.init();
+})
+ipcMain.on('desktopCapturer', () => {
+  appScreenshot();
+})
+
+ipcMain.on('electronShortcutCapture',async (event, arg) => {
   const electronShortcutCapture = new ElectronShortcutCapture({
-    multiScreen: true,
+    multiScreen: true
   });
-  console.log(
+  console.log('electronShortcutCapture???', electronShortcutCapture)
+  // console.log('displays???', electronShortcutCapture.onClipboard((data) => console.log('data??', data)))
+  console.log('show???', electronShortcutCapture.captureWins)
   electronShortcutCapture.getScreenSources(1280, 720).then(screens => {
     let screenArray = screens;
     if (!screens) {
       screenArray = [];
     }
     screenArray.forEach((screen, idx) => {
-      console.log('rs???', screen.thumbnail.toPNG())
-      const buffer = screen.thumbnail.toPNG();
+      console.log('getSOurce????', )
+      console.log('rs???', screen)
+      const buffer = electronShortcutCapture.getSourcePng(screen, 1280, 720);
       fs.writeFile(`thub_${idx}.png`, buffer, (err) => {
         if (err) throw err
         console.log('Image Saved')
       })
     })
   })
-  )
 })
 app.whenReady().then(() => { 
   createWindow();
+  systemPreferences.askForMediaAccess("camera");
+  // globalShortcut.register('Esc', () => {
+  //     captureScreen.init();
+  // });
+  // // globalShortcut.register('Esc', () => {
+  // //     captureScreen.hide();
+  // // });
+  // // 获取截图信息, 已写入剪切板
+  // captureScreen.on('capture', dataURL => {
+  //     console.log(dataURL);
+  // });
   setInterval(()=>{
     console.log(`Capturing Count: ${0}`)
     //start capturing the window
