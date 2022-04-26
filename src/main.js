@@ -46,6 +46,63 @@ function appScreenshot(callback,imageFormat) {
       const isExists = fs.existsSync( './capture' );
       if(!isExists ) {
         fs.mkdirSync( './capture', { recursive: true } );
+        setTimeout(() => {
+          for (const [idx, source] of sources.entries()) {
+              let fileName = `${source.id.startsWith('screen') ? 'screen' : 'image'}_${idx}`;
+                        try{
+                            fs.writeFile(`capture/${fileName}d.png`, source.thumbnail.toPNG(), (err) => {
+                              if (err) throw err
+                              console.log('Image Saved');
+                            })
+                            const files = fs.readdirSync('./capture', {withFileTypes: true});
+                            imageNameList = files.filter(file => file.name.startsWith("screen_")).map(file => `./capture/${file.name}`)
+                        } catch (e) {
+                          console.log(e)
+                        }
+                }
+                setTimeout(() => {
+                  const combineImage = require('combine-image');
+                  console.log('imageNameList??', imageNameList)
+        
+                  combineImage(imageNameList)
+                    .then((img) => {
+                      // Save image as file
+                      const isExists = fs.existsSync( './captureFullscreen' );
+                      if( !isExists ) {
+                          fs.mkdirSync( './captureFullscreen', { recursive: true } );
+                          setTimeout(() => {
+                            img.write('./captureFullscreen/out.png', () => {
+                              console.log('done')
+                              fs.readFile("./captureFullscreen/out.png", function (err, buff) {
+                                if (err) throw err;
+                                
+                                const resultFullScreenBuffer = buff;
+                                console.log('풀스크린 결과 버퍼값 =>', resultFullScreenBuffer)
+                            });
+                            });
+                        }, 500)
+                      } else {
+                        fs.rmdir('./captureFullscreen', { recursive: true }, (err) => {
+                          if (err) {
+                              throw err;
+                          }
+                          fs.mkdirSync( './captureFullscreen', { recursive: true });
+                          setTimeout(() => {
+                              img.write('./captureFullscreen/out.png', () => {
+                                console.log('done')
+                                fs.readFile("./captureFullscreen/out.png", function (err, buff) {
+                                  if (err) throw err;
+                                  
+                                  const resultFullScreenBuffer = buff;
+                                  console.log('풀스크린 결과 버퍼값 =>', resultFullScreenBuffer)
+                              });
+                              });
+                          }, 500)
+                        })
+                        }
+                    });
+                }, 500)
+        }, 500)
       } else {
         fs.rmdir('./capture', { recursive: true }, (err) => {
           if (err) {
@@ -76,6 +133,17 @@ function appScreenshot(callback,imageFormat) {
                         const isExists = fs.existsSync( './captureFullscreen' );
                         if( !isExists ) {
                             fs.mkdirSync( './captureFullscreen', { recursive: true } );
+                            setTimeout(() => {
+                              img.write('./captureFullscreen/out.png', () => {
+                                console.log('done')
+                                fs.readFile("./captureFullscreen/out.png", function (err, buff) {
+                                  if (err) throw err;
+                                  
+                                  const resultFullScreenBuffer = buff;
+                                  console.log('풀스크린 결과 버퍼값 =>', resultFullScreenBuffer)
+                              });
+                              });
+                          }, 500)
                         } else {
                           fs.rmdir('./captureFullscreen', { recursive: true }, (err) => {
                             if (err) {
