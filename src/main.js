@@ -43,7 +43,6 @@ function appScreenshot(callback,imageFormat) {
       } 
     }).then(async sources => {
         console.log(sources);
-        let arr = [];
         let imageNameList = [];
         const isExists = fs.existsSync( './capture' );
         if(!isExists ) {
@@ -51,16 +50,11 @@ function appScreenshot(callback,imageFormat) {
         } else {
           fsExtra.emptyDirSync('./capture');
         }
-        for (const source of sources) {
-            let fileName = `${source.id}`;
-            fileName = fileName.replace(":", "");
-            fileName += ".png";
+        for (const [idx, source] of sources.entries()) {
+          let fileName = `${source.id.startsWith('screen') ? 'screen' : 'image'}_${idx}`;
                 try{
-
-
-                  arr.push(source.thumbnail.toPNG());
-                    fs.writeFile(`./capture/${fileName}`, source.thumbnail.toPNG(), (err) => {
-                      if (err) throw err
+                  fs.writeFile(`capture/${fileName}d.png`, source.thumbnail.toPNG(), (err) => {
+                    if (err) throw err
                       console.log('Image Saved');
                     })
                     const files = fs.readdirSync('./capture', {withFileTypes: true});
