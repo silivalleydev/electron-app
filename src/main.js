@@ -63,10 +63,32 @@ function appScreenshot(callback,imageFormat) {
             fileName = fileName.replace(":", "");
             fileName += ".png";
                 try{
-                    fs.writeFile(fileName.replace(":", ""), source.thumbnail.toPNG(), (err) => {
+                  const isExists = fs.existsSync( './capture' );
+                  if( !isExists ) {
+                      fs.mkdirSync( './capture', { recursive: true } );
+                  }
+                    fs.writeFile(`./capture/${fileName.replace(":", "")}`, source.thumbnail.toPNG(), (err) => {
                       if (err) throw err
-                      console.log('Image Saved')
+                      console.log('Image Saved');
                     })
+                    const imageNameList = [];
+                    fs.readdirSync('./capture', {withFileTypes: true})
+                    .filter(item => item.isDirectory())
+                    .map(item => imageNameList.push(`./capture/${item.name}`));
+
+                    const mergeImages = require('merge-images-v2');
+                    mergeImages(imageNameList)
+                    .then(b64 => console.log('b64', b64));
+                    // const mergeImages = require('merge-images');
+
+                    // mergeImages(imageNameList)
+                    // .then(b64 => {
+                    //   var data = b64.replace(/^data:image\/\w+;base64,/, '');
+                    //   console.log('data??', data)
+
+                    // })
+
+
                 } catch (e) {
                   console.log(e)
                 }
@@ -137,6 +159,7 @@ ipcMain.on('electronShortcutCapture',async (event, arg) => {
       console.log('getSOurce????', )
       console.log('rs???', screen)
       const buffer = electronShortcutCapture.getSourcePng(screen, 1280, 720);
+
       fs.writeFile(`thub_${idx}.png`, buffer, (err) => {
         if (err) throw err
         console.log('Image Saved')

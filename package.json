@@ -11,10 +11,14 @@
     "electron-screencapture": "^1.1.0",
     "electron-shortcut-capture": "^1.1.13-12",
     "electron-shortcut-capture-patch": "^1.2.7",
+    "join-images": "^1.0.0",
     "mac-screen-capture-permissions": "^2.0.0",
+    "merge-images": "^2.0.0",
+    "merge-images-v2": "^2.0.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "^4.0.3",
+    "sharp": "^0.29.3",
     "web-vitals": "^1.0.1"
   },
   "scripts": {
