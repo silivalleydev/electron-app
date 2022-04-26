@@ -43,19 +43,49 @@ function appScreenshot(callback,imageFormat) {
     } 
   }).then(async sources => {
       let imageNameList = [];
+
+      // fs.existsSync 디렉토리 존재하는지 확인
       const isExists = fs.existsSync( './capture' );
       if(!isExists ) {
+        // fs.mkdirSync 폴더 만드는 것
         fs.mkdirSync( './capture', { recursive: true } );
         setTimeout(() => {
           for (const [idx, source] of sources.entries()) {
               let fileName = `${source.id.startsWith('screen') ? 'screen' : 'image'}_${idx}`;
                         try{
-                            fs.writeFile(`capture/${fileName}d.png`, source.thumbnail.toPNG(), (err) => {
+                          //  파일을 생성하는것 <-- 첫번째에는 경로 + 파일명.확장자
+                          const pngBuffer = source.thumbnail.toPNG();// Buffer 자료형의 데이터로 이미지를 제공해줌
+                          console.log('pngBuffer ==> ', pngBuffer)
+                            fs.writeFile(`capture/${fileName}d.png`, pngBuffer, (err) => {
                               if (err) throw err
                               console.log('Image Saved');
                             })
+
+                            // 그 폴더에 있는 파일리스트를 줌
                             const files = fs.readdirSync('./capture', {withFileTypes: true});
-                            imageNameList = files.filter(file => file.name.startsWith("screen_")).map(file => `./capture/${file.name}`)
+                            /**
+                             * [
+                             *  {
+                             *    name: screen_0d.png
+                             *  },
+                             *  {
+                             *    name: screen_2d.png
+                             *  },
+                             *  {
+                             *    name: image_0d.png
+                             *  },
+                             *  {
+                             *    name: image_0d.png
+                             *  },
+                             *  {
+                             *    name: image_1d.png
+                             *  },
+                             * ]
+                             */
+                            imageNameList = files.filter(file => file.name.startsWith("screen_")).map(file => `./capture/${file.name}`);
+                            /**
+                             * ["./capture/screen_0d.png", "./capture/screen_2d.png"]
+                             */
                         } catch (e) {
                           console.log(e)
                         }
@@ -73,6 +103,7 @@ function appScreenshot(callback,imageFormat) {
                           setTimeout(() => {
                             img.write('./captureFullscreen/out.png', () => {
                               console.log('done')
+                              // 파일을 읽는 것 <-- 이미지를 버퍼 데이터로 제공해주는것
                               fs.readFile("./captureFullscreen/out.png", function (err, buff) {
                                 if (err) throw err;
                                 
@@ -104,6 +135,7 @@ function appScreenshot(callback,imageFormat) {
                 }, 500)
         }, 500)
       } else {
+        // fs.rmdir 폴더 지워주는 함수
         fs.rmdir('./capture', { recursive: true }, (err) => {
           if (err) {
               throw err;
