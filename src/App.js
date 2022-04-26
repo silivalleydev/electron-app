@@ -13,19 +13,10 @@ function App() {
       ipcRenderer.send('openSystemPreferences');
     })
   }, [])
-
-  const sendMain = () => {
-    ipcRenderer.send('openPopup', 'send');
-  }
-  const orderMultiScreen = () => {
-    ipcRenderer.send('electronShortcutCapture', 'send');
-  }
   const desktopCapturer = () => {
     ipcRenderer.send('desktopCapturer', 'send');
   }
-  const electronCaptureScreen = () => {
-    ipcRenderer.send('electron-capture-screen', 'send');
-  }
+
   return (
     <div className="App">
       <header className="App-header">
@@ -41,10 +32,7 @@ function App() {
         >
           Learn React
         </a>
-        <button onClick={sendMain}>Send openPopup</button>
-        <button onClick={orderMultiScreen}>electronShortcutCapture</button>
         <button onClick={desktopCapturer}>desktopCapturer</button>
-        <button onClick={electronCaptureScreen}>electron-capture-screen</button>
       </header>
     </div>
   );

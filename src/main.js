@@ -22,19 +22,6 @@ function createWindow () {
   }) 
   win.loadURL("http://localhost:3000")
 } 
-let chwin;
-ipcMain.on('openPopup', (event, arg) => {
-  chwin = new BrowserWindow({ 
-    width: 800, 
-    height: 600, 
-    webPreferences: { 
-      nodeIntegration: true,
-      contextIsolation : false
-    } 
-  }) 
-  chwin.loadFile("./public/temp.html")
-  console.log("Main.js received a ping!!!")
-})
 
 /**
 * Create a screenshot of your electron app. You can modify which process to render in the conditional line #61.
@@ -55,10 +42,12 @@ function appScreenshot(callback,imageFormat) {
       } 
     }).then(async sources => {
         console.log(sources);
-        
+        let arr = [];
+        let imageNameList = [];
+
         for (const source of sources) {
             // Filter: main screen
-            console.log('jpg??',source.thumbnail)
+            // console.log('jpg??',source.thumbnail)
             let fileName = `${source.id}`;
             fileName = fileName.replace(":", "");
             fileName += ".png";
@@ -67,105 +56,37 @@ function appScreenshot(callback,imageFormat) {
                   if( !isExists ) {
                       fs.mkdirSync( './capture', { recursive: true } );
                   }
-                    fs.writeFile(`./capture/${fileName.replace(":", "")}`, source.thumbnail.toPNG(), (err) => {
+
+                  arr.push(source.thumbnail.toPNG());
+                    fs.writeFile(`./capture/${fileName}`, source.thumbnail.toPNG(), (err) => {
                       if (err) throw err
                       console.log('Image Saved');
                     })
-                    const imageNameList = [];
-                    fs.readdirSync('./capture', {withFileTypes: true})
-                    .filter(item => item.isDirectory())
-                    .map(item => imageNameList.push(`./capture/${item.name}`));
-
-                    const mergeImages = require('merge-images-v2');
-                    mergeImages(imageNameList)
-                    .then(b64 => console.log('b64', b64));
-                    // const mergeImages = require('merge-images');
-
-                    // mergeImages(imageNameList)
-                    // .then(b64 => {
-                    //   var data = b64.replace(/^data:image\/\w+;base64,/, '');
-                    //   console.log('data??', data)
-
-                    // })
-
-
+                    const files = fs.readdirSync('./capture', {withFileTypes: true});
+                    imageNameList = files.filter(file => file.name.startsWith("screen")).map(file => `./capture/${file.name}`)
                 } catch (e) {
                   console.log(e)
                 }
         }
+        setTimeout(() => {
+          const combineImage = require('combine-image');
+          console.log('imageNameList??', imageNameList)
+
+          combineImage(imageNameList)
+            .then((img) => {
+              // Save image as file
+              const isExists = fs.existsSync( './captureFullscreen' );
+              if( !isExists ) {
+                  fs.mkdirSync( './captureFullscreen', { recursive: true } );
+              }
+              img.write('./captureFullscreen/out.png', () => console.log('done'));
+            });
+        }, 3000)
     });
 }
 
-ipcMain.on('electron-capture-screen', () => {
-  let captureWin = new BrowserWindow({ 
-    width: 800, 
-    height: 600, 
-    webPreferences: { 
-      nodeIntegration: true,
-      contextIsolation : false
-    } 
-  }) 
-  if (captureWin) {
-    return
-   }
-   const { screen } = require('electron')
-   let { width, height } = screen.getPrimaryDisplay().bounds
-   captureWin = new BrowserWindow({
-    // window    fullscreen, mac     undefined,     false
-    fullscreen: true, // win
-    width,
-    height,
-    x: -100,
-    y: -100,
-    transparent: true,
-    frame: false,
-    skipTaskbar: true,
-    autoHideMenuBar: true,
-    movable: false,
-    resizable: false,
-    enableLargerThanScreen: true, // mac
-    hasShadow: false,
-   })
-   captureWin.setAlwaysOnTop(true, 'screen-saver') // mac
-   captureWin.setVisibleOnAllWorkspaces(true) // mac
-   captureWin.setFullScreenable(true) // mac
-  
-   captureWin.loadFile(path.join(__dirname, 'capture.html'))
-  
-   //    
-   // captureWin.openDevTools()
-  
-   captureWin.on('closed', () => {
-    captureWin = null
-   })
-})
 ipcMain.on('desktopCapturer', () => {
   appScreenshot();
-})
-
-ipcMain.on('electronShortcutCapture',async (event, arg) => {
-  const electronShortcutCapture = new ElectronShortcutCapture({
-    multiScreen: true
-  });
-  console.log('electronShortcutCapture???', electronShortcutCapture)
-  // console.log('displays???', electronShortcutCapture.onClipboard((data) => console.log('data??', data)))
-  console.log('show???', electronShortcutCapture.captureWins)
-  electronShortcutCapture.getScreenSources(1280, 720).then(screens => {
-    let screenArray = screens;
-    if (!screens) {
-      screenArray = [];
-    }
-    screenArray.forEach((screen, idx) => {
-      console.log('getSOurce????', )
-      console.log('rs???', screen)
-      const buffer = electronShortcutCapture.getSourcePng(screen, 1280, 720);
-
-      fs.writeFile(`thub_${idx}.png`, buffer, (err) => {
-        if (err) throw err
-        console.log('Image Saved')
-      })
-    })
-  })
 })
 ipcMain.on('macScreenPermissionCheck', (event) => {
   
@@ -178,33 +99,6 @@ ipcMain.on('openSystemPreferences', (event) => {
 })
 app.whenReady().then(() => { 
   createWindow();
-  console.log('ACCESS????', systemPreferences.getMediaAccessStatus("screen"));
-  console.log('OS??',hasScreenCapturePermission());
-
-  // globalShortcut.register('Esc', () => {
-  //     captureScreen.init();
-  // });
-  // // globalShortcut.register('Esc', () => {
-  // //     captureScreen.hide();
-  // // });
-  // // 获取截图信息, 已写入剪切板
-  // captureScreen.on('capture', dataURL => {
-  //     console.log(dataURL);
-  // });
-  setInterval(()=>{
-    console.log(`Capturing Count: ${0}`)
-    //start capturing the window
-
-    win.webContents.capturePage().then(image => 
-    {
-      console.log(image.toPNG())
-      //writing  image to the disk
-          fs.writeFile(`test${0}.png`, image.toPNG(), (err) => {
-          if (err) throw err
-          console.log('Image Saved')
-          })
-    })
-    }, 10000); //tome in millis
 }) 
 app.on('window-all-closed', function () { 
   if (process.platform !== 'darwin') app.quit() 
