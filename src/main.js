@@ -82,7 +82,15 @@ function appScreenshot(callback,imageFormat) {
               } else {
                 fsExtra.emptyDirSync('./captureFullscreen');
               }
-              img.write('./captureFullscreen/out.png', () => console.log('done'));
+              img.write('./captureFullscreen/out.png', () => {
+                console.log('done')
+                fs.readFile("./captureFullscreen/out.png", function (err, buff) {
+                  if (err) throw err;
+                  
+                  const resultFullScreenBuffer = buff;
+                  console.log('풀스크린 결과 버퍼값 =>', resultFullScreenBuffer)
+              });
+              });
             });
         }, 3000)
     });
