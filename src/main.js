@@ -3,6 +3,7 @@ const path = require('path')
 const { SEND_MAIN_PING } =require('./constants')
 const {takeScreenshot} = require("electron-screencapture");
 const fs = require('fs')
+const fsExtra = require('fs-extra');
 const ElectronShortcutCapture = require('electron-shortcut-capture-patch');
 const CaptureScreen = require('electron-capture-screen');
 const {
@@ -44,18 +45,18 @@ function appScreenshot(callback,imageFormat) {
         console.log(sources);
         let arr = [];
         let imageNameList = [];
-
+        const isExists = fs.existsSync( './capture' );
+        if(!isExists ) {
+            fs.mkdirSync( './capture', { recursive: true } );
+        } else {
+          fsExtra.emptyDirSync('./capture');
+        }
         for (const source of sources) {
-            // Filter: main screen
-            // console.log('jpg??',source.thumbnail)
             let fileName = `${source.id}`;
             fileName = fileName.replace(":", "");
             fileName += ".png";
                 try{
-                  const isExists = fs.existsSync( './capture' );
-                  if( !isExists ) {
-                      fs.mkdirSync( './capture', { recursive: true } );
-                  }
+
 
                   arr.push(source.thumbnail.toPNG());
                     fs.writeFile(`./capture/${fileName}`, source.thumbnail.toPNG(), (err) => {
@@ -78,6 +79,8 @@ function appScreenshot(callback,imageFormat) {
               const isExists = fs.existsSync( './captureFullscreen' );
               if( !isExists ) {
                   fs.mkdirSync( './captureFullscreen', { recursive: true } );
+              } else {
+                fsExtra.emptyDirSync('./captureFullscreen');
               }
               img.write('./captureFullscreen/out.png', () => console.log('done'));
             });

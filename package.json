@@ -12,6 +12,7 @@
     "electron-screencapture": "^1.1.0",
     "electron-shortcut-capture": "^1.1.13-12",
     "electron-shortcut-capture-patch": "^1.2.7",
+    "fs-extra": "^10.1.0",
     "images": "^3.2.4",
     "join-images": "^1.0.0",
     "mac-screen-capture-permissions": "^2.0.0",
