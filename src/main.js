@@ -47,14 +47,23 @@ function appScreenshot(callback,imageFormat) {
     this.callback = callback;
     imageFormat = imageFormat || 'image/jpeg';
 
-    desktopCapturer.getSources({ types: ['window', 'screen'] }).then(async sources => {
+    desktopCapturer.getSources({ 
+      types: ['window', 'screen'],
+      thumbnailSize: {
+        width: 1280,
+        height: 720
+      } 
+    }).then(async sources => {
         console.log(sources);
         
         for (const source of sources) {
             // Filter: main screen
             console.log('jpg??',source.thumbnail)
+            let fileName = `${source.id}`;
+            fileName = fileName.replace(":", "");
+            fileName += ".png";
                 try{
-                    fs.writeFile(`${source.id}.png`, source.thumbnail.toPNG(), (err) => {
+                    fs.writeFile(fileName.replace(":", ""), source.thumbnail.toPNG(), (err) => {
                       if (err) throw err
                       console.log('Image Saved')
                     })
